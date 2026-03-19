@@ -6,6 +6,8 @@ Send a Signal message to yourself. A colored marker appears on your ATAK tactica
 "48.567 39.878 tank"  →  📍 red marker on ATAK at those coordinates
 ```
 
+![Webmap showing red CoT marker near Luhansk](https://raw.githubusercontent.com/farsighttestroman-boop/signal-bot/main/docs/webmap-screenshot.png)
+
 **Source:** https://github.com/farsighttestroman-boop/signal-bot
 
 ---
@@ -43,6 +45,8 @@ Open Signal → **Note to Self** conversation, send:
 ```
 
 The bot replies with a confirmation. A red marker appears on your ATAK tactical map.
+
+![Webmap showing red CoT marker near Luhansk](https://raw.githubusercontent.com/farsighttestroman-boop/signal-bot/main/docs/webmap-screenshot.png)
 
 ---
 
