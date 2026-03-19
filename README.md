@@ -246,6 +246,24 @@ Images use **multi-stage builds** — Poetry resolves deps in the build stage on
 
 ---
 
+## What is FreeTAKServer?
+
+[FreeTAKServer](https://github.com/FreeTAKTeam/FreeTakServer) (FTS) is an open-source Python implementation of the TAK (Team Awareness Kit) server protocol. It acts as a hub that receives CoT (Cursor on Target) XML messages and broadcasts them to all connected ATAK clients in real time.
+
+This project bundles FTS together with its web UI so you get a full tactical picture without running any extra infrastructure — just `docker compose up -d`.
+
+Key components used here:
+
+| Component | Role |
+|---|---|
+| **FreeTAKServer** | Receives CoT XML over TCP :8087, stores events in SQLite, relays to ATAK |
+| **FreeTAKServer-UI** | Web dashboard at :5000 — connected clients, CoT log, user management |
+| **Webmap** | Live Leaflet map at :5000/webmap — markers auto-refresh every 5 s |
+
+> **Upstream repo:** https://github.com/FreeTAKTeam/FreeTakServer
+
+---
+
 ## FreeTakServer Docker Patches
 
 The official FTS Docker quick-start required several fixes to work end-to-end:
