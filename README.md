@@ -21,11 +21,10 @@ Send a Signal message to yourself. A colored marker appears on your ATAK tactica
 No need to clone the repository. Copy the `docker-compose.yaml` file from the repo (or just its contents) to any directory on your machine, then:
 
 ```bash
-docker compose pull
 docker compose up -d
 ```
 
-All images are pulled from Docker Hub automatically.
+Images are pulled from Docker Hub automatically.
 
 ### Link Your Signal Number (first time only)
 
