@@ -49,12 +49,12 @@ The bot replies with a confirmation. A red marker appears on your ATAK tactical 
 
 ## Service URLs
 
-| Service | URL | Purpose |
-|---|---|---|
+| Service | URL | Purpose                           |
+|---|---|-----------------------------------|
 | Signal Bot UI | http://localhost:5001 | Link your Signal number, view docs |
-| FreeTakServer UI | http://localhost:5000 | Manage the TAK server, webmap |
-| Webmap | http://localhost:5000/webmap | Live CoT marker map |
-| FreeTakServer CoT | TCP :8087 | Receives CoT markers |
+| FreeTakServer UI | http://localhost:5000 | Manage the TAK server, webmap     |
+| Webmap | http://localhost:5000/webmap | Live CoT marker map               |
+| FreeTakServer CoT | TCP :8087 | Receives CoT markers              |
 
 ---
 
