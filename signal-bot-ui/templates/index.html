@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %} — Home{% endblock %}
+{% block content %}
+
+{% if linked %}
+<div class="alert alert-success">
+  ✅ Successfully linked <strong>{{ linked }}</strong> — the bot is now listening for messages.
+</div>
+{% endif %}
+
+<div id="notif-toast" style="
+    display:none; position:fixed; top:1rem; right:1rem; z-index:9999;
+    background:#1e5e2b; color:#fff; padding:0.75rem 1.1rem; border-radius:8px;
+    box-shadow:0 2px 8px rgba(0,0,0,.25); font-size:0.9rem; max-width:320px;">
+</div>
+
+<h2 style="margin-top:0">Registered accounts</h2>
+
+{% if accounts %}
+  {% for acc in accounts %}
+  <div class="card" style="display:flex; align-items:center; gap:0.75rem;">
+    <span style="font-size:1.4rem">📱</span>
+    <div>
+      <div style="font-weight:600; font-size:1.05rem">{{ acc }}</div>
+      <div class="hint">Listening for messages sent to this number</div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- How to send -->
+  <div class="card" style="margin-top:0.5rem">
+    <strong>How to send a target</strong>
+    <p class="hint" style="margin:0.4rem 0 0.6rem">
+      Send a message to yourself in Signal:<br>
+      <code>&lt;lat&gt; &lt;lon&gt; &lt;description&gt;</code>
+    </p>
+    <table style="border-collapse:collapse; width:100%; font-size:0.88rem;">
+      <thead>
+        <tr style="border-bottom:1px solid #e0e0e0; text-align:left;">
+          <th style="padding:0.35rem 0.5rem; white-space:nowrap; width:5rem;">Marker</th>
+          <th style="padding:0.35rem 0.5rem;">Type</th>
+          <th style="padding:0.35rem 0.5rem;">Trigger words</th>
+          <th style="padding:0.35rem 0.5rem;">Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:0.35rem 0.5rem; white-space:nowrap;">
+            <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#ff3333;border:1px solid #999;vertical-align:middle;"></span>
+            <strong style="margin-left:4px;">Red</strong>
+          </td>
+          <td style="padding:0.35rem 0.5rem; color:#666;">Hostile</td>
+          <td style="padding:0.35rem 0.5rem;"><code>tank</code>, <code>artillery</code>, <code>enemy</code>, <code>hostile</code>, <code>target</code></td>
+          <td style="padding:0.35rem 0.5rem;"><code>48.567 39.878 tank</code></td>
+        </tr>
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:0.35rem 0.5rem; white-space:nowrap;">
+            <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#00ccff;border:1px solid #999;vertical-align:middle;"></span>
+            <strong style="margin-left:4px;">Cyan</strong>
+          </td>
+          <td style="padding:0.35rem 0.5rem; color:#666;">Friendly</td>
+          <td style="padding:0.35rem 0.5rem;"><code>friendly</code>, <code>ally</code>, <code>blue</code>, <code>friend</code></td>
+          <td style="padding:0.35rem 0.5rem;"><code>50.1 30.5 friendly patrol</code></td>
+        </tr>
+        <tr>
+          <td style="padding:0.35rem 0.5rem; white-space:nowrap;">
+            <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#ffff00;border:1px solid #999;vertical-align:middle;"></span>
+            <strong style="margin-left:4px;">Yellow</strong>
+          </td>
+          <td style="padding:0.35rem 0.5rem; color:#666;">Unknown</td>
+          <td style="padding:0.35rem 0.5rem;">anything else</td>
+          <td style="padding:0.35rem 0.5rem;"><code>51.0 32.0 checkpoint</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Webmap -->
+  <div class="card" style="margin-top:0.5rem">
+    <strong>ATAK Webmap</strong>
+    <div class="hint" style="margin:0.35rem 0 0.6rem">
+      View live CoT markers on the map. If prompted, login with <code>admin</code> / <code>password</code>.
+    </div>
+    <a href="http://localhost:5000/webmap" class="btn" onclick="openWebmap(); return false;">Open Webmap</a>
+  </div>
+
+{% else %}
+  <div class="card">
+    <p class="empty" style="margin:0 0 0.75rem">No accounts linked yet.</p>
+    <a href="/link" class="btn">Link your Signal account</a>
+  </div>
+{% endif %}
+
+<script>
+  // ── Account change → auto-reload ────────────────────────────────────────
+  const knownAccounts = new Set({{ accounts | tojson }});
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/accounts');
+      const current = await res.json();
+      const changed = current.length !== knownAccounts.size ||
+                      current.some(a => !knownAccounts.has(a));
+      if (changed) window.location.reload();
+    } catch (_) {}
+  }, 4000);
+
+  // ── Webmap window management ─────────────────────────────────────────────
+  const WEBMAP_URL = 'http://localhost:5000/webmap';
+  let _webmapWin = null;
+
+  function openWebmap() {
+    if (!_webmapWin || _webmapWin.closed) {
+      _webmapWin = window.open(WEBMAP_URL, 'cot_webmap');
+    } else {
+      _webmapWin.focus();
+    }
+  }
+
+  // ── New CoT event notifications ─────────────────────────────────────────
+  let lastTs = null;  // null = not yet initialized; skip notifications on first load
+  const toast = document.getElementById('notif-toast');
+  let toastTimer = null;
+
+  function showToast(msg) {
+    toast.innerHTML = msg + ' &nbsp;<a href="#" onclick="openWebmap();return false;" ' +
+      'style="color:#a8f0b8;text-decoration:underline;">Open map</a>';
+    toast.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 6000);
+  }
+
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/recent');
+      const events = await res.json();
+      const newest = events.length ? events[events.length - 1] : null;
+      if (lastTs === null) {
+        // First poll — record baseline silently, no notifications
+        lastTs = newest ? newest.ts : 0;
+        return;
+      }
+      if (newest && newest.ts > lastTs) {
+        const newOnes = events.filter(e => e.ts > lastTs);
+        lastTs = newest.ts;
+        newOnes.forEach(e => {
+          const aff = (e.cot_type || '').split('-')[1] || '?';
+          const affLabel = aff === 'h' ? 'hostile' : aff === 'f' ? 'friendly' : 'unknown';
+          const msg = `New ${affLabel}: ${e.description} (${e.lat.toFixed(4)}, ${e.lon.toFixed(4)})`;
+          showToast('📍 ' + msg);
+          if ('Notification' in window && Notification.permission === 'granted') {
+            const n = new Notification('Signal Bot — new CoT', {
+              body: msg + '\nClick to open map',
+            });
+            n.onclick = () => { openWebmap(); n.close(); };
+          }
+        });
+      }
+    } catch (_) {}
+  }, 3000);
+</script>
+
+{% endblock %}

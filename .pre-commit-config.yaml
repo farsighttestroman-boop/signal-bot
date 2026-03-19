@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^signal-bot-(api|ui)/
+      - id: ruff-format
+        files: ^signal-bot-(api|ui)/
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        files: ^signal-bot-api/
+        args: [--config-file=signal-bot-api/pyproject.toml, --ignore-missing-imports]
+        additional_dependencies: [types-requests]
+      - id: mypy
+        name: mypy (ui)
+        files: ^signal-bot-ui/
+        args: [--config-file=signal-bot-ui/pyproject.toml, --ignore-missing-imports]
+        additional_dependencies: [types-requests, flask]

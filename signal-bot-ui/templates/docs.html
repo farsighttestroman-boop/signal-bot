@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal Bot — Docs</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 860px; margin: 2rem auto; padding: 0 1.5rem;
+      color: #1a1a1a; background: #f7f8fa; line-height: 1.65;
+    }
+    #topbar {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 1.5rem; padding-bottom: 0.75rem;
+      border-bottom: 1px solid #ddd; font-size: 0.9rem;
+    }
+    #topbar a { color: #0055cc; text-decoration: none; font-weight: 500; }
+    #topbar a:hover { text-decoration: underline; }
+    #notif-toast {
+      display: none; position: fixed; top: 1rem; right: 1rem; z-index: 9999;
+      background: #1e5e2b; color: #fff; padding: 0.75rem 1.1rem;
+      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      font-size: 0.9rem; max-width: 320px;
+    }
+    h1 { font-size: 1.7rem; border-bottom: 2px solid #ddd; padding-bottom: 0.4rem; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1.05rem; margin-top: 1.5rem; }
+    code {
+      background: #eef0f3; padding: 0.15em 0.4em; border-radius: 4px;
+      font-size: 0.88em; font-family: "SFMono-Regular", Consolas, monospace;
+    }
+    pre {
+      background: #1e2029; color: #e6e6e6; padding: 1rem 1.25rem;
+      border-radius: 8px; overflow-x: auto; font-size: 0.85rem;
+    }
+    pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.9rem; }
+    th { background: #eef0f3; }
+    th, td { border: 1px solid #ddd; padding: 0.45rem 0.75rem; text-align: left; }
+    tr:nth-child(even) td { background: #fafafa; }
+    blockquote { border-left: 3px solid #ccc; margin: 0; padding: 0.5rem 1rem; color: #555; }
+    a { color: #0055cc; }
+    img { max-width: 100%; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div id="notif-toast"></div>
+  <div id="topbar">
+    <span style="font-size:1.4rem">📡</span>
+    <strong>Signal Bot</strong>
+    <a href="/">← Home</a>
+  </div>
+  <div id="content"></div>
+  <script>
+    const raw = {{ content | tojson }};
+    document.getElementById('content').innerHTML = marked.parse(raw);
+
+    // ── Webmap window management ─────────────────────────────────────────
+    const WEBMAP_URL = 'http://localhost:5000/webmap';
+    let _webmapWin = null;
+
+    function openWebmap() {
+      if (!_webmapWin || _webmapWin.closed) {
+        _webmapWin = window.open(WEBMAP_URL, 'cot_webmap');
+      } else {
+        _webmapWin.focus();
+      }
+    }
+
+    // ── New CoT event notifications ──────────────────────────────────────
+    let lastTs = null;
+    const toast = document.getElementById('notif-toast');
+    let toastTimer = null;
+
+    function showToast(msg) {
+      toast.innerHTML = msg + ' &nbsp;<a href="#" onclick="openWebmap();return false;" ' +
+        'style="color:#a8f0b8;text-decoration:underline;">Open map</a>';
+      toast.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 6000);
+    }
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/recent');
+        const events = await res.json();
+        const newest = events.length ? events[events.length - 1] : null;
+        if (lastTs === null) {
+          lastTs = newest ? newest.ts : 0;
+          return;
+        }
+        if (newest && newest.ts > lastTs) {
+          const newOnes = events.filter(e => e.ts > lastTs);
+          lastTs = newest.ts;
+          newOnes.forEach(e => {
+            const aff = (e.cot_type || '').split('-')[1] || '?';
+            const affLabel = aff === 'h' ? 'hostile' : aff === 'f' ? 'friendly' : 'unknown';
+            const msg = `New ${affLabel}: ${e.description} (${e.lat.toFixed(4)}, ${e.lon.toFixed(4)})`;
+            showToast('📍 ' + msg);
+            if ('Notification' in window && Notification.permission === 'granted') {
+              const n = new Notification('Signal Bot — new CoT', {
+                body: msg + '\nClick to open map',
+              });
+              n.onclick = () => { openWebmap(); n.close(); };
+            }
+          });
+        }
+      } catch (_) {}
+    }, 3000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal Bot{% block title %}{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 720px; margin: 2rem auto; padding: 0 1.25rem;
+      color: #1a1a1a; background: #f7f8fa;
+    }
+    header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    header h1 { font-size: 1.35rem; margin: 0; }
+    nav { margin-bottom: 2rem; font-size: 0.9rem; border-bottom: 1px solid #ddd; padding-bottom: 0.75rem; }
+    nav a { margin-right: 1.25rem; color: #0055cc; text-decoration: none; font-weight: 500; }
+    nav a:hover { text-decoration: underline; }
+    .card {
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+      padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    label { display: block; margin-bottom: 0.3rem; font-weight: 600; font-size: 0.9rem; }
+    input[type=text], input[type=tel] {
+      width: 100%; padding: 0.55rem 0.75rem; font-size: 1rem;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    .btn {
+      display: inline-block; margin-top: 0.75rem; padding: 0.55rem 1.4rem;
+      background: #0055cc; color: #fff; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.95rem; text-decoration: none;
+    }
+    .btn:hover { background: #0044aa; }
+    .btn-secondary {
+      background: #fff; color: #0055cc; border: 1px solid #0055cc; margin-left: 0.5rem;
+    }
+    .btn-secondary:hover { background: #f0f5ff; }
+    .hint { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+    .empty { color: #888; font-style: italic; }
+    .alert {
+      padding: 0.85rem 1.1rem; border-radius: 6px; margin-bottom: 1.25rem;
+      font-size: 0.95rem;
+    }
+    .alert-success { background: #e6f4ea; border: 1px solid #a8d5b0; color: #1e5e2b; }
+    .alert-info    { background: #e8f0fe; border: 1px solid #a8c4f5; color: #1a3a7a; }
+  </style>
+</head>
+<body>
+  <header>
+    <span style="font-size:1.6rem">📡</span>
+    <h1>Signal Bot</h1>
+  </header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/link">Link account</a>
+    <a href="/docs">Docs</a>
+  </nav>
+  {% block content %}{% endblock %}
+</body>
+</html>

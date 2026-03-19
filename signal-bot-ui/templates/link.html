@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %} — Link account{% endblock %}
+{% block content %}
+
+<h2 style="margin-top:0">Link your Signal account</h2>
+
+<div class="alert alert-info" id="status-msg">
+  ⏳ Waiting for you to scan the QR code…
+</div>
+
+<div style="display:flex; gap:2rem; align-items:flex-start; flex-wrap:wrap;">
+
+  <!-- QR code -->
+  <div class="card" style="flex:0 0 auto; text-align:center; padding: 1.5rem;">
+    <div style="position:relative; width:220px; height:220px;">
+      <img id="qr" src="/qrcode.png" alt="Signal link QR code"
+           style="width:220px; height:220px; display:block;">
+      <div id="qr-overlay" style="
+          display:none; position:absolute; inset:0;
+          background:rgba(255,255,255,0.85);
+          align-items:center; justify-content:center;
+          font-size:0.85rem; color:#555; flex-direction:column; gap:0.5rem;">
+        <span>⏳ Refreshing…</span>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:0.75rem; max-width:220px">
+      Auto-refreshes in <span id="ttl">{{ qr_ttl }}</span>s.
+      <a href="#" onclick="reloadQR(true); return false;">Refresh now</a>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div style="flex:1; min-width:220px;">
+    <div class="card">
+      <strong>How to link your device:</strong>
+      <ol style="margin: 0.75rem 0 0; padding-left:1.25rem; line-height:1.9;">
+        <li>Open <strong>Signal</strong> on your phone</li>
+        <li>Tap your profile picture (top-left)</li>
+        <li>Go to <strong>Linked Devices</strong></li>
+        <li>Tap <strong>＋ Link New Device</strong></li>
+        <li>Point the camera at the QR code on the left</li>
+        <li>Confirm in Signal — done!</li>
+      </ol>
+    </div>
+    <div class="card hint" style="margin-top:0;">
+      This links the bot as a <strong>secondary device</strong> on your account —
+      exactly like Signal Desktop. No SMS required. Messages you send to yourself
+      (Note to Self) will be forwarded to ATAK as CoT markers.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const QR_TTL = {{ qr_ttl }};
+  const before = new Set({{ before | tojson }});
+
+  let ttlLeft = QR_TTL;
+  let refreshing = false;
+
+  function reloadQR(force = false) {
+    if (refreshing) return;
+    refreshing = true;
+    ttlLeft = QR_TTL;
+    document.getElementById('ttl').textContent = QR_TTL;
+    const overlay = document.getElementById('qr-overlay');
+    overlay.style.display = 'flex';
+    const img = document.getElementById('qr');
+    const url = '/qrcode.png?' + (force ? 'refresh=1&t=' : 't=') + Date.now();
+    const tmp = new Image();
+    tmp.onload = () => {
+      img.src = tmp.src;
+      overlay.style.display = 'none';
+      refreshing = false;
+    };
+    tmp.onerror = () => {
+      overlay.style.display = 'none';
+      refreshing = false;
+    };
+    tmp.src = url;
+  }
+
+  // Countdown + auto-refresh
+  setInterval(() => {
+    if (refreshing) return;
+    ttlLeft--;
+    document.getElementById('ttl').textContent = Math.max(0, ttlLeft);
+    if (ttlLeft <= 0) reloadQR(true);
+  }, 1000);
+
+  // Poll for new account every 2s
+  const poll = setInterval(async () => {
+    try {
+      const res = await fetch('/api/accounts');
+      const accounts = await res.json();
+      // Redirect if any account appeared that wasn't there before
+      const newNumber = accounts.find(a => !before.has(a));
+      // Also redirect if before was empty and now has any account (re-link case)
+      const anyAccount = before.size === 0 && accounts.length > 0 ? accounts[0] : null;
+      const linked = newNumber || anyAccount;
+      if (linked) {
+        clearInterval(poll);
+        const msg = document.getElementById('status-msg');
+        msg.textContent = '✅ Linked! Redirecting…';
+        msg.className = 'alert alert-success';
+        setTimeout(() => {
+          window.location.href = '/?linked=' + encodeURIComponent(linked);
+        }, 800);
+      }
+    } catch (_) {}
+  }, 2000);
+</script>
+
+{% endblock %}

@@ -1,0 +1,23 @@
+# Tests & quality tooling — not needed in the final image
+tests/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Development configs (tool configs are in pyproject.toml which IS copied)
+.env
+.env.*
+!.env.example
+
+# IDE & OS noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.pyc
+__pycache__/
+
+# Docs (README is copied separately when needed)
+*.md

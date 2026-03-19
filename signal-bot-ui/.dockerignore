@@ -1,0 +1,20 @@
+# Tests & quality tooling — not needed in the final image
+tests/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Development configs
+.env
+.env.*
+!.env.example
+
+# IDE & OS noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.pyc
+__pycache__/
