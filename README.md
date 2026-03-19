@@ -6,6 +6,8 @@ Send a Signal message to yourself. A colored marker appears on your ATAK tactica
 "48.567 39.878 tank"  →  📍 red marker on ATAK at those coordinates
 ```
 
+**Source:** https://github.com/farsighttestroman-boop/signal-bot
+
 ---
 
 ## Quick Start
@@ -16,7 +18,7 @@ Send a Signal message to yourself. A colored marker appears on your ATAK tactica
 
 ### Start Everything
 
-No need to clone the repository. Copy the `docker-compose.yaml` file (or just its contents) to any directory on your machine, then:
+No need to clone the repository. Copy the `docker-compose.yaml` file from the repo (or just its contents) to any directory on your machine, then:
 
 ```bash
 docker compose pull
